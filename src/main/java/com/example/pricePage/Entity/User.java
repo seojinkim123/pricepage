@@ -1,46 +1,35 @@
 package com.example.pricePage.Entity;
 
-import com.example.pricePage.Dto.UserDto;
 import jakarta.persistence.*;
-import lombok.Data;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 
-import java.time.LocalDateTime;
+import lombok.*;
 
 @Entity
-@Data
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "users")
 public class User {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true)
+    private String email;
 
-    private String username;
-
-    private String email ;
+    private String name;
 
     @Enumerated(EnumType.STRING)
-    private Role role;
+    @Column(nullable = false)
+    private Role role = Role.ROLE_USER;
 
-
-    @CreatedDate
-    @Column(name = "created_date")
-    private LocalDateTime createdDate;
-
-    @LastModifiedDate
-    @Column(name = "modified_date")
-    private LocalDateTime modifiedDate;
-
-
-    public void updateUser(UserDto userDto) {
-        this.username= userDto.getUsername;
-        this.role = userDto.getRole();
-        this.modifiedDate = LocalDateTime.now();
-        this.email = userDto.getEmail();
-
+    public static User create(String email, String name) {
+        User u = new User();
+        u.email = email;
+        u.name = name;
+        u.role = Role.ROLE_USER;
+        return u;
     }
 
-
+    public void syncProfile(String name) {
+        this.name = name;
+    }
 }
