@@ -2,6 +2,7 @@ package com.example.pricePage.Service;
 
 
 import com.example.pricePage.Dto.LoginRequest;
+import com.example.pricePage.Dto.SignupRequest;
 import com.example.pricePage.Dto.TokenResponse;
 import com.example.pricePage.Entity.AuthCredential;
 import com.example.pricePage.Entity.AuthProvider;
@@ -29,17 +30,52 @@ public class AuthService {
     /** ID/PW 로그인 */
     @Transactional
     public TokenResponse loginWithPassword(LoginRequest req) {
-        AuthCredential cred = authCredentialRepository
-                .findByProviderAndProviderUserId(AuthProvider.LOCAL, req.getEmail())
-                .orElseThrow(() -> new RuntimeException("Account not found"));
 
-        if (cred.getPassword() == null || !passwordEncoder.matches(req.getPassword(), cred.getPassword())) {
-            throw new RuntimeException("Bad credentials");
+        // 1️⃣ email로 User 찾기
+        User user = userRepository.findByEmail(req.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // 2️⃣ 이 User의 LOCAL credential 찾기
+        AuthCredential cred = authCredentialRepository
+                .findByUserAndProvider(user, AuthProvider.LOCAL)
+                .orElseThrow(() -> new RuntimeException("이 이메일은 소셜 로그인 계정입니다"));
+
+        // 3️⃣ 비밀번호 검증
+        if (!passwordEncoder.matches(req.getPassword(), cred.getPassword())) {
+            throw new RuntimeException("비번 틀림");
         }
 
-        User user = cred.getUser();
+        // 4️⃣ 토큰 발급
         return issueTokens(user);
     }
+
+    /** ID/PW 회원가입 */
+    @Transactional
+    public TokenResponse signup(SignupRequest req) {
+
+        // 1️⃣ 이메일 중복 체크 (User 기준)
+        if (userRepository.findByEmail(req.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already exists");
+        }
+
+        // 2️⃣ User 생성
+        User user = userRepository.save(
+                User.create(req.getEmail(), req.getName())
+        );
+
+        // 3️⃣ LOCAL AuthCredential 생성
+        authCredentialRepository.save(
+                AuthCredential.local(
+                        user,
+                        passwordEncoder.encode(req.getPassword())
+                )
+        );
+
+        // 4️⃣ 토큰 발급 (선택: 가입 후 바로 로그인)
+        return issueTokens(user);
+    }
+
+
 
     /** OAuth2 로그인 성공 시 (provider + sub 기반) */
     @Transactional

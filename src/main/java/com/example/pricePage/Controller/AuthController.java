@@ -1,9 +1,6 @@
 package com.example.pricePage.Controller;
 
-import com.example.pricePage.Dto.LoginRequest;
-import com.example.pricePage.Dto.RefreshTokenRequest;
-import com.example.pricePage.Dto.TokenResponse;
-import com.example.pricePage.Dto.UserResponse;
+import com.example.pricePage.Dto.*;
 import com.example.pricePage.Service.AuthService;
 
 import lombok.RequiredArgsConstructor;
@@ -27,6 +24,13 @@ public class AuthController {
     public TokenResponse login(@RequestBody LoginRequest dto) {
         return authService.loginWithPassword(dto);
     }
+
+    @PostMapping("/signup")
+    public TokenResponse signup(@RequestBody SignupRequest request) {
+        return authService.signup(request);
+    }
+
+
 
     @PostMapping("/token/refresh")
     public TokenResponse refresh(@RequestBody RefreshTokenRequest request) {

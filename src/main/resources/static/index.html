@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>OAuth Login</title>
+</head>
+<body>
+  <h1>로그인</h1>
+
+  <form id="login-form">
+    <div>
+      <label for="email">이메일</label>
+      <input id="email" name="email" type="email" required />
+    </div>
+    <div>
+      <label for="password">비밀번호</label>
+      <input id="password" name="password" type="password" required />
+    </div>
+    <button type="submit">아이디/비밀번호 로그인</button>
+  </form>
+
+  <h2>회원가입</h2>
+  <form id="signup-form">
+    <div>
+      <label for="signup-email">이메일</label>
+      <input id="signup-email" name="email" type="email" required />
+    </div>
+    <div>
+      <label for="signup-password">비밀번호</label>
+      <input id="signup-password" name="password" type="password" required />
+    </div>
+    <button type="submit">회원가입</button>
+  </form>
+
+  <pre id="result" style="background:#f4f4f4;padding:8px;"></pre>
+
+  <button id="google-login-btn" type="button">구글로 로그인</button>
+
+  <script>
+    const loginForm = document.getElementById('login-form');
+    const signupForm = document.getElementById('signup-form');
+    const resultBox = document.getElementById('result');
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+        resultBox.textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        resultBox.textContent = '로그인 실패: ' + err.message;
+      }
+    });
+
+    signupForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('signup-email').value;
+      const password = document.getElementById('signup-password').value;
+
+      try {
+        const res = await fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+        resultBox.textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        resultBox.textContent = '회원가입 실패: ' + err.message;
+      }
+    });
+
+    document.getElementById('google-login-btn').addEventListener('click', () => {
+      window.location.href = '/oauth2/authorization/google';
+    });
+  </script>
+</body>
+</html>
